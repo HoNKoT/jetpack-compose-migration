@@ -9,7 +9,10 @@ import com.github.gfx.android.orma.annotation.Table
 class Data {
     @Column(value = BaseColumns._ID)
     @PrimaryKey(autoincrement = true)
-    var id: Long = 0
+    var localId: Long = 0
+
+    @Column
+    var remoteId: Long = 0
 
     @Column
     var message: String = ""

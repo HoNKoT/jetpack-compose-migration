@@ -9,5 +9,19 @@ import javax.inject.Singleton
 class DataRepository @Inject constructor(
     private val dataDao: DataDao
 ) {
+    fun store(
+        remoteId: Long,
+        message: String? = null,
+        imageThumbnail: String
+    ) {
+        dataDao.relation().inserter().execute(Data().also {
+            it.remoteId = remoteId
+            it.message = message ?: Integer.toHexString(it.hashCode())
+            it.imageThumbnail = imageThumbnail
+        })
+    }
+
     fun findAll(): List<Data> = dataDao.relation().selector().toList()
+
+    fun hasAny(): Boolean = !dataDao.relation().isEmpty
 }
