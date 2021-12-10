@@ -38,19 +38,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import coil.compose.rememberImagePainter
 import com.example.jetpackcomposemigration.CustomApplication
-import com.example.jetpackcomposemigration.R
-import com.example.jetpackcomposemigration.databinding.ItemSampleBinding
 import com.example.jetpackcomposemigration.databinding.MainFragmentBinding
 import com.example.jetpackcomposemigration.ext.baseMarginDp
-import com.example.jetpackcomposemigration.ext.dp
 import com.example.jetpackcomposemigration.ext.halfMarginDp
-import com.example.jetpackcomposemigration.ext.loadImage
-import com.example.jetpackcomposemigration.ext.quarterMarginDp
 import com.example.jetpackcomposemigration.models.binding.DataBindingModel
 import com.example.jetpackcomposemigration.utils.autoCleared
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
-import com.xwray.groupie.viewbinding.BindableItem
 import javax.inject.Inject
 
 class MainFragment : Fragment() {
@@ -89,13 +83,6 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.recyclerMainFragment.adapter = adapter
-
-//        viewModel.displayBindingModels.observe(viewLifecycleOwner) { bindingModels ->
-//            binding.composeView.setContent {
-//                ItemList(bindingModels)
-//            }
-        ////            adapter.updateAsync(bindingModels.map { Item(it) })
-//        }
         viewModel.initialize()
     }
 
@@ -103,40 +90,34 @@ class MainFragment : Fragment() {
     fun MainContent() {
         val listModels = remember { mutableStateListOf<DataBindingModel>() }
         viewModel.displayBindingModels.observe(viewLifecycleOwner) { listModels.addAll(it) }
+        viewModel.onAddedModels.observe(viewLifecycleOwner) { listModels.add(it) }
+        viewModel.onRemovedModels.observe(viewLifecycleOwner) { listModels.remove(it) }
 
         MaterialTheme {
             Box(
                 modifier = Modifier
                     .background(Color(0xFFEDEAE0))
                     .fillMaxSize()
-                    .padding(top = quarterMarginDp, bottom = quarterMarginDp)
             ) {
                 LazyColumn {
                     items(listModels) { bindingModel ->
                         Item(
                             data = bindingModel,
-                            onClickedRemove = {
-                                listModels.remove(it)
-                            }
+                            onClickedRemove = { viewModel.removeModel(it) }
                         )
                     }
                 }
 
                 FloatingActionButton(
-                    onClick = {
-                        listModels.add(
-                            DataBindingModel(
-                                222222,
-                                "TEST",
-                                "https://github.com/SenriTaro.png"
-                            )
-                        )
-                    },
-                    modifier = Modifier.align(Alignment.BottomEnd),
+                    onClick = { viewModel.addNewModel() },
+                    modifier = Modifier
+                        .padding(end = baseMarginDp, bottom = baseMarginDp)
+                        .align(Alignment.BottomEnd),
                     backgroundColor = Color(0xFFFE4164)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
+                        tint = Color.White,
                         contentDescription = ""
                     )
                 }
@@ -208,24 +189,6 @@ class MainFragment : Fragment() {
 //                thickness = Dp(1f),
 //                color = Color.LightGray
 //            )
-        }
-    }
-
-    private class AdapterItem(private val data: DataBindingModel) : BindableItem<ItemSampleBinding>() {
-        override fun getLayout(): Int = R.layout.item_sample
-
-        override fun initializeViewBinding(view: View): ItemSampleBinding = ItemSampleBinding.bind(view)
-
-        override fun bind(viewBinding: ItemSampleBinding, position: Int) {
-            viewBinding.apply {
-                imageItemThumbnail.loadImage(
-                    path = data.thumbnail,
-                    width = 50.dp,
-                    height = 50.dp
-                )
-                textItemId.text = data.id.toString()
-                textItemMessage.text = data.message
-            }
         }
     }
 }

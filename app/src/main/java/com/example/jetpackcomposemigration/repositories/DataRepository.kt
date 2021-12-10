@@ -13,15 +13,19 @@ class DataRepository @Inject constructor(
         remoteId: Long,
         message: String? = null,
         imageThumbnail: String
-    ) {
-        dataDao.relation().inserter().execute(Data().also {
+    ): Data {
+        val data = Data().also {
             it.remoteId = remoteId
             it.message = message ?: Integer.toHexString(it.hashCode())
             it.imageThumbnail = imageThumbnail
-        })
+        }
+        val id = dataDao.relation().inserter().execute(data)
+        return data.also { it.localId = id }
     }
 
     fun findAll(): List<Data> = dataDao.relation().selector().toList()
 
     fun hasAny(): Boolean = !dataDao.relation().isEmpty
+
+    fun removeById(id: Long) = dataDao.relation().localIdEq(id).deleter().execute()
 }
